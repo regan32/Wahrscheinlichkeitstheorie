@@ -1,18 +1,10 @@
 // Wahrscheinlichkeitstheorie.cpp : Defines the entry point for the console application.
 //
 
-#ifdef _WIN32
 #include "stdafx.h"
-#endif
-
-#include <unordered_map>
-#include <iostream>
-#include <functional>
-#include <vector>
+#include "Deck.hpp"
 
 //HOLDEM
-const size_t total_cards = 52;
-const size_t total_combinations = 380204032; // 52^5;
 
 enum HandMultiplyer
 {
@@ -25,42 +17,7 @@ enum HandMultiplyer
     Quad = 1000000,
     StreetFlash = 10000000
 };
-struct DeckImpl
-{
-    DeckImpl()
-        : mask(0)
-    {
-    }
-    DeckImpl(unsigned long long cards)
-        : mask(cards)
-    {
-    }
-    unsigned long long operator^(const DeckImpl& rhs) const
-    {
-        return mask ^ rhs.mask;
-    }
 
-    unsigned long long mask;
-    unsigned size()
-    {
-        unsigned cards = 0;
-        for(size_t i = total_cards; i > 0; --i)
-        {
-            if ((1ULL << i & mask) != 0)
-                cards++;
-        }
-
-        return cards;
-    }
-};
-
-struct FullDeck : public DeckImpl
-{
-    FullDeck()
-    {
-        mask = (1ULL << total_cards + 1) - 1;
-    }
-};
 
 class HoldemPower
 {
@@ -93,28 +50,6 @@ private:
         return result == matches;
     }
 };
-
-
-void CheckCombination(size_t cards, size_t positions,unsigned long long hand, std::unordered_map<unsigned long long, int>& hash_table)
-{
-    auto numberOfPositions = positions;
-    auto cards_left = cards - 1;
-    for (int i = positions; i > 0; --i)
-    {
-        if (cards_left > 0 && i > 0)
-            CheckCombination(cards_left, i - 1, hand | 1ULL << i, hash_table);
-        else if(cards_left == 0)
-            hash_table.insert(std::make_pair(hand | 1ULL << i, 1));
-            //hash_table.insert_or_assign(hand | 1ULL << i, 1);
-    }
-}
-
-void Init_Combinations(size_t cards)
-{
-    std::unordered_map<unsigned long long, int> hash_table;
-    CheckCombination(cards, total_cards, 0ULL, hash_table);
-    std::cout<< hash_table.size();
-}
 
 unsigned long long CalcDeckPower(DeckImpl hand)
 {
