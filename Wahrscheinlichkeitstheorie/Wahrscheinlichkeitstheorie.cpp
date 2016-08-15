@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "Deck.hpp"
-
+#include "HoldemInitializer.h"
 //HOLDEM
 
 enum HandMultiplyer
@@ -67,7 +67,7 @@ double Calc(DeckImpl hand, size_t total_players, size_t players_in_game, DeckImp
 }
 int main()
 {
-    Init_Combinations(5);
+    HoldemInitializer::Init_Combinations(7);
     return 0;
 }
 
