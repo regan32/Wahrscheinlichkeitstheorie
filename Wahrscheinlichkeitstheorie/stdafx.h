@@ -12,8 +12,12 @@
 #include <tchar.h>
 #endif
 
+#include <memory>
 #include <unordered_map>
 #include <iostream>
 #include <functional>
 #include <vector>
+#include <map>
+#include <fstream>
+#include <bitset>
 // TODO: reference additional headers your program requires here

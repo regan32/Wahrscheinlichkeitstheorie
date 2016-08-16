@@ -6,57 +6,6 @@
 #include "HoldemInitializer.h"
 //HOLDEM
 
-enum HandMultiplyer
-{
-    Best = 1,
-    Pair = 10,
-    Triple = 100,
-    Street = 1000,
-    FullHouse = 10000,
-    Flash = 100000,
-    Quad = 1000000,
-    StreetFlash = 10000000
-};
-
-
-class HoldemPower
-{
-    public:
-        static unsigned long long Calculate_Power(DeckImpl hand)
-        {
-            m_functions.push_back([](DeckImpl hand){ return 0;});
-        }
-
-private:
-    static std::vector<std::function<unsigned long long(DeckImpl)>> m_functions;
-
-    unsigned long long IsQuad(DeckImpl hand)
-    {
-        unsigned single =0;
-        for (int i = 0; i < 13; ++i)
-        {
-            if(Calc_matches(hand.mask >> (i * 4), 4))
-                return (i+1) * HandMultiplyer::Quad;
-        }
-    }
-    bool Calc_matches(unsigned long long hand, int matches)
-    {
-        int result = 0;
-        for(int i = 4; i > 0; --i)
-        {
-            result += (hand >> i) & 0x1;
-        }
-
-        return result == matches;
-    }
-};
-
-unsigned long long CalcDeckPower(DeckImpl hand)
-{
-    if (hand.size() > 5) return 0;
-
-
-}
 double Calc(DeckImpl hand, size_t total_players, size_t players_in_game, DeckImpl board)
 {
     unsigned cards_to_take = 5 - board.size();
@@ -65,9 +14,20 @@ double Calc(DeckImpl hand, size_t total_players, size_t players_in_game, DeckImp
 
     return 0;
 }
+
+
+inline int population_count64_max15(unsigned __int64 w)
+{
+    w -= (w >> 1) & 0x5555555555555555ULL;
+    w = (w & 0x3333333333333333ULL) + ((w >> 2) & 0x3333333333333333ULL);
+
+    return int((w * 0x1111111111111111ULL) >> 60);
+}
+
 int main()
 {
-    HoldemInitializer::Init_Combinations(7);
+    //int res = population_count64_max15(0x1111111110011011ULL);
+    HoldemInitializer::Init_Combinations(5);
     return 0;
 }
 
