@@ -7,7 +7,6 @@
 #include "Deck.hpp"
 #include <mutex>
 
-
 class Node
 {
 public:
@@ -23,13 +22,15 @@ class HoldemTree :
 public:
     void insert(value_type type)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
         insert(type);
     }
 private:
-    std::mutex m_mutex;
+
     
 };
+
+static std::mutex g_mutex;
+static std::multimap<unsigned long long, unsigned> tree;
 
 class HoldemInitializer {
 public:
@@ -96,19 +97,22 @@ public:
 
         return 0;
     }
-    static void CheckCombination(size_t cards_left, size_t positions,unsigned long long hand, HoldemTree& hash_table)
+    static void CheckCombination(size_t cards_left, size_t positions,unsigned long long hand)
     {
         auto numberOfPositions = positions;
         for (int i = positions; i >= 0; --i)
         {
-            if (cards_left > 0)
-                CheckCombination(cards_left - 1, i - 1, hand | 1ULL << i, hash_table);
+            if (cards_left > 0) {
+                CheckCombination(cards_left - 1, i - 1, hand | 1ULL << i);
+            }
             else if(cards_left == 0)
             {
                 __int64 tmp = hand | 1ULL << i;
                 unsigned power = CalculatePower(tmp);
-                if(power > 0)
-                hash_table.insert(std::make_pair(tmp, power));
+                if(power > 0) {
+                    std::lock_guard<std::mutex> lock(g_mutex);
+                    tree.insert(std::make_pair(tmp, power));
+                }
             }
 
             //hash_table.insert_or_assign(hand | 1ULL << i, 1);
@@ -157,12 +161,14 @@ public:
 //            (*it)->join();
 //        }
         // 
-        CheckCombination(cards, total_cards, 0ULL, hash_table);
-       std::thread thread(CheckCombination, cards, total_cards, 0ULL, std::ref(hash_table));
+        //CheckCombination(cards, total_cards, 0ULL);
+        std::thread thread(HoldemInitializer::CheckCombination, cards - 1, total_cards - 1, 1ULL << total_cards);
+        std::thread thread2(HoldemInitializer::CheckCombination, cards - 1, total_cards - 2, 1ULL << (total_cards -1));
         //std::thread thread2(CheckCombination, cards, total_cards, 0ULL, std::ref(hash_table));
-        bool f = thread.joinable();
-        thread.detach();
-        //thread2.join();
+//        bool f = thread.joinable();
+//        thread.detach();
+        thread2.join();
+        thread.join();
 //        std::ofstream stream;
 //        stream.open("C:\\hashMap", std::ios::trunc | std::ios::out);
 //        if(stream.is_open())

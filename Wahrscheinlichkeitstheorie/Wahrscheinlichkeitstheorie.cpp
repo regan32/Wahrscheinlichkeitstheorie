@@ -16,7 +16,7 @@ double Calc(DeckImpl hand, size_t total_players, size_t players_in_game, DeckImp
 }
 
 
-inline int population_count64_max15(unsigned __int64 w)
+inline int population_count64_max15(__int64 w)
 {
     w -= (w >> 1) & 0x5555555555555555ULL;
     w = (w & 0x3333333333333333ULL) + ((w >> 2) & 0x3333333333333333ULL);

@@ -1,5 +1,6 @@
 #pragma once
 
+typedef long long __int64;
 const size_t total_cards = 52;
 const size_t total_game_combinations = 674274182400; // 52!/45!;
 const size_t total_card_combinations = 311875200; // 52!/47!;
@@ -130,7 +131,7 @@ public:
         return false;
     }
 
-    int population_count64_max15(unsigned __int64 w)
+    int population_count64_max15(__int64 w)
     {
         w -= (w >> 1) & 0x5555555555555555ULL;
         w = (w & 0x3333333333333333ULL) + ((w >> 2) & 0x3333333333333333ULL);
