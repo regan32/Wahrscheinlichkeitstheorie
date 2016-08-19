@@ -1,9 +1,11 @@
 #pragma once
 
+#ifndef WIN32 
 typedef long long __int64;
+#endif
 const size_t total_cards = 52;
-const size_t total_game_combinations = 674274182400; // 52!/45!;
-const size_t total_card_combinations = 311875200; // 52!/47!;
+const size_t total_game_combinations = 133784560;
+const size_t total_card_combinations = 2598960;
 class DeckImpl
 {
 public:

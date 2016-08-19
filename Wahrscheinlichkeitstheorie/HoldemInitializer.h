@@ -6,7 +6,7 @@
 #include "stdafx.h"
 #include "Deck.hpp"
 #include <mutex>
-
+#include "ThreadPool.h"
 class Node
 {
 public:
@@ -17,105 +17,110 @@ public:
 };
 
 class HoldemTree :
-    std::multimap<unsigned long long, unsigned>
+    public std::map<unsigned long long, unsigned>
 {
 public:
+    HoldemTree()
+    {
+    }
     void insert(value_type type)
     {
-        insert(type);
+        std::lock_guard<std::mutex> lock(m_mutex_);
+        std::map<unsigned long long, unsigned>::insert(type);
     }
 private:
-
+    std::mutex m_mutex_;
     
 };
 
-static std::mutex g_mutex;
-static std::multimap<unsigned long long, unsigned> tree;
+static HoldemTree tree;
 
 class HoldemInitializer {
 public:
 
-    enum HandMultiplyer
+    enum HandMultiplyer : long long
     {
-        Best = 1,
-        Pair = 100,
-        DoublePair = 1000,
-        Triple = 10000,
-        Street = 100000,
-        FullHouse = 1000000,
-        Flash = 10000000,
-        Quad = 100000000,
-        StreetFlash = 1000000000
+        Third       = 100,
+        Second      = 1000,
+        Best        = 10000,
+        Pair        = 100000,
+        DoublePair  = 1000000,
+        Triple      = 10000000,
+        Street      = 100000000,
+        Flash       = 1000000000,
+        FullHouse   = 10000000000,
+        Quad        = 100000000000,
+        StreetFlash = 1000000000000
     };
 
     static unsigned CalculatePower(unsigned long long hand)
     {
         DeckImpl deck = hand;
 
-        unsigned card_value = 0;
+        unsigned first_value = 0;
+        unsigned second_value = 0;
 
-        if(deck.IsQuad(card_value))
+        if(deck.IsQuad(first_value))
         {
-            return card_value + Quad;
+            return first_value  + Quad;
         }
 
-        if (deck.IsTriple(card_value))
+        if (deck.IsTriple(first_value))
         {
-            unsigned pair_value;
-            if (deck.IsPair(pair_value))
+            if (deck.IsPair(second_value))
             {
-                return card_value * 10 + pair_value + FullHouse;
+                return first_value * 10 + second_value + FullHouse;
             }
 
-            return card_value + Triple;
+            return first_value + Triple;
         }
 
-        if (deck.IsPair(card_value))
+        if (deck.IsPair(first_value))
         {
-            unsigned second_pair;
-            if (deck.IsPair(second_pair, card_value - 3))
+            if (deck.IsPair(second_value, first_value - 3))
             {
-                return card_value * 10 + second_pair + DoublePair;
+                return first_value * 10 + second_value + DoublePair;
             }
 
-            return card_value + Pair;
+            return first_value + Pair;
         }
 
-        if(deck.IsStreet(card_value))
+        if(deck.IsStreet(first_value))
         {
-            if (deck.IsFlash(card_value))
+            if (deck.IsFlash(first_value))
             {
-                return card_value + StreetFlash;
+                return first_value + StreetFlash;
             }
-            return card_value + Street;
+            return first_value + Street;
         }
 
-        if (deck.IsFlash(card_value))
+        if (deck.IsFlash(first_value))
         {
-            return card_value + Flash;
+            return first_value + Flash;
         }
 
         return 0;
     }
-    static void CheckCombination(size_t cards_left, size_t positions,unsigned long long hand)
-    {
-        auto numberOfPositions = positions;
-        for (int i = positions; i >= 0; --i)
-        {
-            if (cards_left > 0) {
-                CheckCombination(cards_left - 1, i - 1, hand | 1ULL << i);
-            }
-            else if(cards_left == 0)
-            {
-                __int64 tmp = hand | 1ULL << i;
-                unsigned power = CalculatePower(tmp);
-                if(power > 0) {
-                    std::lock_guard<std::mutex> lock(g_mutex);
-                    tree.insert(std::make_pair(tmp, power));
-                }
-            }
 
-            //hash_table.insert_or_assign(hand | 1ULL << i, 1);
+    static void CheckCombination(int cards_left, int total_cards,unsigned long long hand)
+    {
+        int begin_position = total_cards - 1;
+        int end_position = --cards_left;
+        for (int i = begin_position; i >= end_position; --i)
+        {
+            __int64 tmp = hand | 1ULL << i;
+
+            if(cards_left == 0)
+            {
+//                unsigned power = CalculatePower(tmp);
+//                if(power > 0) {
+                    tree.insert(std::make_pair(tmp, CalculatePower(tmp)));
+//                }
+            }
+            else
+            {
+                CheckCombination(cards_left, i, tmp);
+            }
         }
     }
 
@@ -145,39 +150,19 @@ public:
         HoldemTree hash_table;
         unsigned concurentThreadsSupported = std::thread::hardware_concurrency();
         if (concurentThreadsSupported == 0) concurentThreadsSupported = 1;
-        auto numberOfPositions = total_cards;
-        auto hand = 0UL;
 
-//        std::vector<std::shared_ptr<std::thread>> Pool;
-//        //std::thread thread(HoldemInitializer::CheckCombination, cards - 1, 1 - 1, hand | 1ULL << 1, std::ref(hash_table));
-//        for (int i = total_cards; i >= 0; --i)
-//        {
-//            std::thread thread(CheckCombination,cards - 1, i - 1, hand | 1ULL << i, std::ref(hash_table));
-//            thread.detach();
-//        }
-//        std::this_thread::sleep_for(std::chrono::seconds(30));
-//        for(auto it = Pool.rbegin(); it != Pool.rend(); ++it)
-//        {
-//            (*it)->join();
-//        }
-        // 
+        int numberOfPositions = total_cards - 1;
+        auto hand = 0ULL;
         //CheckCombination(cards, total_cards, 0ULL);
-        std::thread thread(HoldemInitializer::CheckCombination, cards - 1, total_cards - 1, 1ULL << total_cards);
-        std::thread thread2(HoldemInitializer::CheckCombination, cards - 1, total_cards - 2, 1ULL << (total_cards -1));
-        //std::thread thread2(CheckCombination, cards, total_cards, 0ULL, std::ref(hash_table));
-//        bool f = thread.joinable();
-//        thread.detach();
-        thread2.join();
-        thread.join();
-//        std::ofstream stream;
-//        stream.open("C:\\hashMap", std::ios::trunc | std::ios::out);
-//        if(stream.is_open())
-//        {
-//            for(auto it = hash_table.begin(); it != hash_table.end(); ++it)
-//            {
-//                stream << std::bitset<52>(it->first)<< " - " << it->second << std::endl;
-//            }
-//        }
+        ThreadPool pool(4);
+        cards--;
+        for(int i = numberOfPositions; i >= int(cards); --i)
+        {
+            pool.enqueue(HoldemInitializer::CheckCombination, cards, i , 1ULL << i);
+        }
+
+        pool.wait_until_nothing_in_flight();
+        std::cout << tree.size();
         std::this_thread::sleep_for(std::chrono::seconds(30));
     }
 };
