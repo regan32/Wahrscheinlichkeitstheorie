@@ -40,9 +40,8 @@ public:
 
     enum HandMultiplyer : long long
     {
-        Third       = 100,
-        Second      = 1000,
-        Best        = 10000,
+        Second      = 100,
+        Best        = 1000,
         Pair        = 100000,
         DoublePair  = 1000000,
         Triple      = 10000000,
