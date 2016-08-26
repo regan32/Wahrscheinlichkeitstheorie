@@ -131,7 +131,9 @@ int main( int argc, char *argv[] )
                             }
                             else {
                               ++tieCount[i];
-                              ev[i] += (1.0 / nWinners);
+                              //In math aspect tie != win? but for player tie is a positive result so ev should be incremented
+                              //ev[i] += (1.0 / nWinners);
+                              ev[i]++;
                             };
                           }
                           else

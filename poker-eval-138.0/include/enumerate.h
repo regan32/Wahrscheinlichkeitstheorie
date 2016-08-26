@@ -94,7 +94,11 @@ them (with replacement).
 #include <stdio.h>
 #include <stdlib.h>
 #include "pokereval_export.h"
+#include "../../dSFMT-src-2.2.2/dSFMT.h"
 
+//#ifdef DSFMT
+#define RANDOM dsfmt_gv_genrand_uint32
+//#endif
 #ifndef RANDOM
 #define RANDOM rand
 #endif

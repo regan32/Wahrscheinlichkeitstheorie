@@ -42,10 +42,10 @@ int char2rank(char c) {
 
 int char2suit(char c) {
   switch(toupper(c)) {
-    case 'h': return StdDeck_Suit_HEARTS;
-    case 'd': return StdDeck_Suit_DIAMONDS;
-    case 'c': return StdDeck_Suit_CLUBS;
-    case 's': return StdDeck_Suit_SPADES;
+    case 'H': return StdDeck_Suit_HEARTS;
+    case 'D': return StdDeck_Suit_DIAMONDS;
+    case 'C': return StdDeck_Suit_CLUBS;
+    case 'S': return StdDeck_Suit_SPADES;
     default: return -1;
   }
 }

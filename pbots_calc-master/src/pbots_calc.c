@@ -26,6 +26,7 @@
 
 #include "pbots_calc.h"
 #include "util.h"
+#include "../../dSFMT-src-2.2.2/dSFMT.h"
 
 typedef enum {
   ERROR,
@@ -48,7 +49,7 @@ void choose(Hand* hand, StdDeck_CardMask* cards) {
   // http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/SFMT/index.html instead
   // of built in rand...
   // Could also go backwards if i > hand->dist_n/2...
-  for (i=rand()%hand->dist_n; i>=0; i--) {
+  for (i= dsfmt_gv_genrand_uint32()%hand->dist_n; i>=0; i--) {
     cur_h = cur_h->next;
   }
   hand->hand_dist = cur_h->next;
@@ -73,7 +74,7 @@ int choose_D(Hand* hand, StdDeck_CardMask dead, StdDeck_CardMask* cards) {
 
 // Select 2 hole cards from hand of 3 cards - unset the discarded card in place!
 void choose_2(StdDeck_CardMask* three_pocket) {
-  discard_card(three_pocket, rand()%3 + 1);
+  discard_card(three_pocket, dsfmt_gv_genrand_uint32() %3 + 1);
 }
 
 // Parse string specifying hand range and return what type it is.
@@ -777,7 +778,7 @@ int calc(const char* hand_str, char* board_str, char* dead_str, int iters, Resul
   int ndead, nboard, err;
   Hands* hands;
   unsigned long long coms;
-
+  dsfmt_gv_init_gen_rand(time(NULL));
   srand(time(NULL));
   if (!extract_single_cards(dead_str, &dead)) {
     printf("calc: Improperly formatted dead cards %s\n", dead_str);

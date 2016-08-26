@@ -16,9 +16,9 @@
  * pbots_calc in a file in teh toplevel directory called "GPLv3".  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-
+#define DSFMT
 #include <stdio.h>
-#include "pbots_calc.h"
+#include "../src/pbots_calc.h"
 
 /*
  * Simple command line tool for equity calculations. Demonstrates how to use the
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     }
   }
   res = alloc_results();
-  calc(argv[1], board, dead, 1000000, res);
+  calc(argv[1], board, dead, 10000000, res);
   print_results(res);
   free_results(res);
   return 1;

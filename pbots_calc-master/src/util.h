@@ -22,8 +22,8 @@
 
 #include <ctype.h>
 
-#include <poker-eval/enumdefs.h>
-#include <poker-eval/poker_defs.h>
+#include "../../poker-eval-138.0/include/enumdefs.h"
+#include "../../poker-eval-138.0/include/poker_defs.h"
 
 typedef struct h_dist h_dist;
 // store distribution of pocket cards in ll
